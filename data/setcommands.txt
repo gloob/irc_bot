@@ -1,0 +1,5 @@
+start - Initialize the connection wizard
+stop - Finalize the connection wizard
+help - About IRC Bot
+settings - Define specific settings
+stats - Display connection statistics
