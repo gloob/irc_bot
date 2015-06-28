@@ -15,9 +15,10 @@ import (
 var (
 	// Global configuration object.
 	globalConfig irc_bot.GlobalConfig
+	ircConfig    irc_bot.ProxyConfig
 
 	help *bool   = flag.Bool("help", false, "Display usage information")
-	host *string = flag.String("host", "irc.irc-hispano.org", "The host to connect to")
+	host *string = flag.String("host", "localhost", "The host to connect to")
 	port *int    = flag.Int("port", 6667, "The port to connect to")
 )
 
@@ -34,27 +35,16 @@ func main() {
 		return
 	}
 
-	ircConfig := irc_bot.ProxyConfig{
-		Host:     *host,
-		Port:     *port,
-		Password: "",
-		Nick:     "irc_bot",
-		RealName: "The Telegram Irc Bot.",
-	}
-
-	proxy, err := irc_bot.Connect(ircConfig)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	// Load main configuration.
 	usr, err := user.Current()
 	if err != nil {
 		panic(err)
 	}
 	configFile := usr.HomeDir + "/.config/irc_bot/config.toml"
+	proxyFile := usr.HomeDir + "/.config/irc_bot/proxy.toml"
 
 	irc_bot.LoadConfig(configFile, &globalConfig)
+	irc_bot.LoadConfig(proxyFile, &ircConfig)
 
 	bot, err := telebot.Create(globalConfig.Token)
 	if err != nil {
@@ -63,6 +53,11 @@ func main() {
 
 	messages := make(chan telebot.Message)
 	bot.Listen(messages, 1*time.Second)
+
+	proxy, err := irc_bot.Connect(ircConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	go proxy.Run()
 

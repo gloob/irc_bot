@@ -1,0 +1,6 @@
+# It should be located at ~/.config/irc_bot/proxy.toml
+Host = "localhost"
+Port = 6667
+Password = "this_is_the_nick_password"
+Nick = "irc_bot"
+RealName = "The Telegram Irc Bot"
