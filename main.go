@@ -1,6 +1,10 @@
 package main
 
 import (
+	"flag"
+	"fmt"
+	"log"
+	"os"
 	"os/user"
 	"time"
 
@@ -10,10 +14,39 @@ import (
 
 var (
 	// Global configuration object.
-	globalConfig irc_bot.Config
+	globalConfig irc_bot.GlobalConfig
+
+	help *bool   = flag.Bool("help", false, "Display usage information")
+	host *string = flag.String("host", "irc.irc-hispano.org", "The host to connect to")
+	port *int    = flag.Int("port", 6667, "The port to connect to")
 )
 
+func PrintUsage() {
+	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+	flag.PrintDefaults()
+}
+
 func main() {
+	// Parse commandline options
+	flag.Parse()
+	if *help {
+		PrintUsage()
+		return
+	}
+
+	ircConfig := irc_bot.ProxyConfig{
+		Host:     *host,
+		Port:     *port,
+		Password: "",
+		Nick:     "irc_bot",
+		RealName: "The Telegram Irc Bot.",
+	}
+
+	proxy, err := irc_bot.Connect(ircConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Load main configuration.
 	usr, err := user.Current()
 	if err != nil {
@@ -30,6 +63,8 @@ func main() {
 
 	messages := make(chan telebot.Message)
 	bot.Listen(messages, 1*time.Second)
+
+	go proxy.Run()
 
 	for message := range messages {
 		if message.Text == "/start" {
