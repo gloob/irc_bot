@@ -7,8 +7,16 @@ import (
 	"os"
 )
 
-type Config struct {
+type GlobalConfig struct {
 	Token string
+}
+
+type ProxyConfig struct {
+	Host     string
+	Port     int
+	Password string
+	Nick     string
+	RealName string
 }
 
 func LoadConfig(filename string, config interface{}) (err error) {
